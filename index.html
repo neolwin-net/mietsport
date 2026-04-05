@@ -1,15 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Football Scores</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="site-header">
     <h1>⚽ Football Scores</h1>
-    <p>Latest match results and fixtures</p>
     <nav>
       <a href="index.html">Home</a>
       <a href="admin.html">Admin</a>
@@ -17,21 +16,13 @@
   </header>
 
   <main class="container">
-    <section class="filters">
-      <input type="text" id="searchInput" placeholder="Search team..." />
-      <select id="statusFilter">
-        <option value="All">All Status</option>
-        <option value="Upcoming">Upcoming</option>
-        <option value="Live">Live</option>
-        <option value="FT">FT</option>
-      </select>
-    </section>
-
-    <section id="scoresContainer" class="scores-grid">
-      <!-- Matches will load here -->
+    <section>
+      <h2>Matches</h2>
+      <div id="matchesContainer" class="scores-grid"></div>
     </section>
   </main>
 
-  <script src="script.js"></script>
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="home.js"></script>
 </body>
 </html>
