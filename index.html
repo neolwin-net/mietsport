@@ -7,22 +7,27 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="site-header">
-    <h1>⚽ Football Scores</h1>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="admin.html">Admin</a>
-    </nav>
-  </header>
+<header class="site-header">
+  <h1>⚽ Football Scores</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="admin.html">Admin</a>
+  </nav>
+</header>
 
-  <main class="container">
-    <section>
-      <h2>Matches</h2>
-      <div id="matchesContainer" class="scores-grid"></div>
-    </section>
-  </main>
+<main class="container">
+  <section>
+    <h2>Upcoming Matches</h2>
+    <div id="upcomingMatches" class="scores-grid"></div>
+  </section>
 
-  <script type="module" src="firebase-config.js"></script>
-  <script type="module" src="home.js"></script>
+  <section>
+    <h2>Previous Matches</h2>
+    <div id="previousMatches" class="scores-grid"></div>
+  </section>
+</main>
+
+<script type="module" src="firebase-config.js"></script>
+<script type="module" src="home.js"></script>
 </body>
 </html>
