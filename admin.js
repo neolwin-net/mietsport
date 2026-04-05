@@ -1,8 +1,5 @@
 import { db } from './firebase-config.js';
-import {
-  collection, addDoc, updateDoc, doc, deleteDoc,
-  onSnapshot, getDoc, getDocs
-} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { collection, addDoc, updateDoc, doc, deleteDoc, onSnapshot, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 const matchForm = document.getElementById("matchForm");
 const matchIdInput = document.getElementById("matchId");
@@ -29,7 +26,7 @@ onSnapshot(matchesCollection, snapshot => {
     div.classList.add("match-card");
     div.innerHTML = `
       <p><strong>${match.league}</strong> - ${match.date} ${match.time}</p>
-      <p>${match.homeTeam} ${match.homeScore} : ${match.awayScore} ${match.awayTeam}</p>
+      <p>${match.homeTeam} ${match.homeScore ?? ""} : ${match.awayScore ?? ""} ${match.awayTeam}</p>
       <p>Status: ${match.status}</p>
       <button class="edit-btn" data-id="${id}">Edit</button>
       <button class="delete-btn" data-id="${id}">Delete</button>
@@ -37,6 +34,7 @@ onSnapshot(matchesCollection, snapshot => {
     adminMatchesDiv.appendChild(div);
   });
 
+  // Edit
   document.querySelectorAll(".edit-btn").forEach(btn => {
     btn.addEventListener("click", async e => {
       const id = e.target.dataset.id;
@@ -48,12 +46,13 @@ onSnapshot(matchesCollection, snapshot => {
       timeInput.value = match.time;
       homeTeamInput.value = match.homeTeam;
       awayTeamInput.value = match.awayTeam;
-      homeScoreInput.value = match.homeScore;
-      awayScoreInput.value = match.awayScore;
+      homeScoreInput.value = match.homeScore ?? "";
+      awayScoreInput.value = match.awayScore ?? "";
       statusInput.value = match.status;
     });
   });
 
+  // Delete
   document.querySelectorAll(".delete-btn").forEach(btn => {
     btn.addEventListener("click", async e => {
       const id = e.target.dataset.id;
@@ -64,7 +63,7 @@ onSnapshot(matchesCollection, snapshot => {
   });
 });
 
-// Add / update match
+// Add / Update
 matchForm.addEventListener("submit", async e => {
   e.preventDefault();
   const matchData = {
@@ -73,16 +72,18 @@ matchForm.addEventListener("submit", async e => {
     time: timeInput.value,
     homeTeam: homeTeamInput.value,
     awayTeam: awayTeamInput.value,
-    homeScore: parseInt(homeScoreInput.value),
-    awayScore: parseInt(awayScoreInput.value),
+    homeScore: homeScoreInput.value ? parseInt(homeScoreInput.value) : null,
+    awayScore: awayScoreInput.value ? parseInt(awayScoreInput.value) : null,
     status: statusInput.value
   };
+
   const id = matchIdInput.value;
   if (id) {
     await updateDoc(doc(db, "matches", id), matchData);
   } else {
     await addDoc(matchesCollection, matchData);
   }
+
   matchForm.reset();
   matchIdInput.value = "";
 });
