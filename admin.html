@@ -7,6 +7,14 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <script>
+    const password = prompt("Enter admin password:");
+    if (password !== "admin123") {
+      alert("Access denied!");
+      window.location.href = "index.html";
+    }
+  </script>
+
   <header class="site-header">
     <h1>⚙️ Admin Panel</h1>
     <p>Add, edit, delete and export football scores</p>
