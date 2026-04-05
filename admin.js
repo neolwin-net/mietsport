@@ -1,18 +1,43 @@
+import { db } from "./firebase-config.js";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  updateDoc,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const form = document.getElementById("matchForm");
+const adminMatches = document.getElementById("adminMatches");
+
 let matches = [];
 
-async function loadAdminScores() {
+async function loadMatches() {
   try {
-    const response = await fetch("scores.json");
-    matches = await response.json();
+    const querySnapshot = await getDocs(collection(db, "matches"));
+    matches = [];
+
+    querySnapshot.forEach((docSnap) => {
+      matches.push({
+        id: docSnap.id,
+        ...docSnap.data()
+      });
+    });
+
     renderAdminMatches();
   } catch (error) {
-    console.error("Error loading scores:", error);
+    console.error("Error loading matches:", error);
   }
 }
 
 function renderAdminMatches() {
-  const container = document.getElementById("adminMatches");
-  container.innerHTML = "";
+  adminMatches.innerHTML = "";
+
+  if (matches.length === 0) {
+    adminMatches.innerHTML = "<p>No matches available.</p>";
+    return;
+  }
 
   matches.forEach(match => {
     const card = document.createElement("div");
@@ -28,21 +53,21 @@ function renderAdminMatches() {
       <span class="status ${match.status}">${match.status}</span>
 
       <div class="card-actions">
-        <button class="edit-btn" onclick="editMatch(${match.id})">Edit</button>
-        <button class="delete-btn" onclick="deleteMatch(${match.id})">Delete</button>
+        <button class="edit-btn" onclick="editMatch('${match.id}')">Edit</button>
+        <button class="delete-btn" onclick="deleteMatch('${match.id}')">Delete</button>
       </div>
     `;
 
-    container.appendChild(card);
+    adminMatches.appendChild(card);
   });
 }
 
-document.getElementById("matchForm").addEventListener("submit", function(e) {
+form.addEventListener("submit", async function (e) {
   e.preventDefault();
 
-  const id = document.getElementById("matchId").value;
-  const newMatch = {
-    id: id ? Number(id) : Date.now(),
+  const matchId = document.getElementById("matchId").value;
+
+  const matchData = {
     league: document.getElementById("league").value,
     date: document.getElementById("date").value,
     time: document.getElementById("time").value,
@@ -53,18 +78,22 @@ document.getElementById("matchForm").addEventListener("submit", function(e) {
     status: document.getElementById("status").value
   };
 
-  if (id) {
-    matches = matches.map(match => match.id === Number(id) ? newMatch : match);
-  } else {
-    matches.push(newMatch);
-  }
+  try {
+    if (matchId) {
+      await updateDoc(doc(db, "matches", matchId), matchData);
+    } else {
+      await addDoc(collection(db, "matches"), matchData);
+    }
 
-  this.reset();
-  document.getElementById("matchId").value = "";
-  renderAdminMatches();
+    form.reset();
+    document.getElementById("matchId").value = "";
+    loadMatches();
+  } catch (error) {
+    console.error("Error saving match:", error);
+  }
 });
 
-function editMatch(id) {
+window.editMatch = function (id) {
   const match = matches.find(m => m.id === id);
   if (!match) return;
 
@@ -77,24 +106,17 @@ function editMatch(id) {
   document.getElementById("homeScore").value = match.homeScore;
   document.getElementById("awayScore").value = match.awayScore;
   document.getElementById("status").value = match.status;
-}
+};
 
-function deleteMatch(id) {
-  matches = matches.filter(match => match.id !== id);
-  renderAdminMatches();
-}
+window.deleteMatch = async function (id) {
+  if (!confirm("Delete this match?")) return;
 
-document.getElementById("exportBtn").addEventListener("click", function() {
-  const dataStr = JSON.stringify(matches, null, 2);
-  const blob = new Blob([dataStr], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
+  try {
+    await deleteDoc(doc(db, "matches", id));
+    loadMatches();
+  } catch (error) {
+    console.error("Error deleting match:", error);
+  }
+};
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "scores.json";
-  a.click();
-
-  URL.revokeObjectURL(url);
-});
-
-loadAdminScores();
+loadMatches();
