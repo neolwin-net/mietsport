@@ -7,55 +7,55 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <script>
-    const password = prompt("Enter admin password:");
-    if (password !== "admin123") {
-      alert("Access denied!");
-      window.location.href = "index.html";
-    }
-  </script>
+<script>
+const password = prompt("Enter admin password:");
+if (password !== "admin123") {
+  alert("Access denied!");
+  window.location.href = "index.html";
+}
+</script>
 
-  <header class="site-header">
-    <h1>⚙️ Admin Panel</h1>
-    <p>Add, edit, delete and export football scores</p>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="admin.html">Admin</a>
-    </nav>
-  </header>
+<header class="site-header">
+  <h1>⚙️ Admin Panel</h1>
+  <p>Add / edit / delete and export football scores</p>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="admin.html">Admin</a>
+  </nav>
+</header>
 
-  <main class="container">
-    <section class="admin-form-section">
-      <h2>Add / Update Match</h2>
-      <form id="matchForm" class="admin-form">
-        <input type="hidden" id="matchId">
-        <input type="text" id="league" placeholder="League" required>
-        <input type="date" id="date" required>
-        <input type="time" id="time" required>
-        <input type="text" id="homeTeam" placeholder="Home Team" required>
-        <input type="text" id="awayTeam" placeholder="Away Team" required>
-        <input type="number" id="homeScore" placeholder="Home Score" required>
-        <input type="number" id="awayScore" placeholder="Away Score" required>
-        <select id="status" required>
-          <option value="Upcoming">Upcoming</option>
-          <option value="Live">Live</option>
-          <option value="FT">FT</option>
-        </select>
-        <button type="submit">Save Match</button>
-      </form>
-    </section>
+<main class="container">
+  <section class="admin-form-section">
+    <h2>Add / Update Match</h2>
+    <form id="matchForm" class="admin-form">
+      <input type="hidden" id="matchId">
+      <input type="text" id="league" placeholder="League" required>
+      <input type="date" id="date" required>
+      <input type="time" id="time" required>
+      <input type="text" id="homeTeam" placeholder="Home Team" required>
+      <input type="text" id="awayTeam" placeholder="Away Team" required>
+      <input type="number" id="homeScore" placeholder="Home Score">
+      <input type="number" id="awayScore" placeholder="Away Score">
+      <select id="status" required>
+        <option value="Upcoming">Upcoming</option>
+        <option value="Live">Live</option>
+        <option value="FT">FT</option>
+      </select>
+      <button type="submit">Save Match</button>
+    </form>
+  </section>
 
-    <section class="admin-actions">
-      <button id="exportBtn">Export JSON File</button>
-    </section>
+  <section class="admin-actions">
+    <button id="exportBtn">Export JSON File</button>
+  </section>
 
-    <section>
-      <h2>Current Matches</h2>
-      <div id="adminMatches" class="scores-grid"></div>
-    </section>
-  </main>
+  <section>
+    <h2>Current Matches</h2>
+    <div id="adminMatches" class="scores-grid"></div>
+  </section>
+</main>
 
-  <script type="module" src="firebase-config.js"></script>
-  <script type="module" src="admin.js"></script>
+<script type="module" src="firebase-config.js"></script>
+<script type="module" src="admin.js"></script>
 </body>
 </html>
