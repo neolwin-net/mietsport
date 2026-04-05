@@ -1,122 +1,109 @@
-import { db } from "./firebase-config.js";
+import { db } from './firebase-config.js';
 import {
   collection,
   addDoc,
-  getDocs,
-  doc,
   updateDoc,
-  deleteDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  doc,
+  deleteDoc,
+  onSnapshot,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-const form = document.getElementById("matchForm");
-const adminMatches = document.getElementById("adminMatches");
+const matchForm = document.getElementById("matchForm");
+const matchIdInput = document.getElementById("matchId");
+const leagueInput = document.getElementById("league");
+const dateInput = document.getElementById("date");
+const timeInput = document.getElementById("time");
+const homeTeamInput = document.getElementById("homeTeam");
+const awayTeamInput = document.getElementById("awayTeam");
+const homeScoreInput = document.getElementById("homeScore");
+const awayScoreInput = document.getElementById("awayScore");
+const statusInput = document.getElementById("status");
+const adminMatchesDiv = document.getElementById("adminMatches");
+const exportBtn = document.getElementById("exportBtn");
 
-let matches = [];
+const matchesCollection = collection(db, "matches");
 
-async function loadMatches() {
-  try {
-    const querySnapshot = await getDocs(collection(db, "matches"));
-    matches = [];
-
-    querySnapshot.forEach((docSnap) => {
-      matches.push({
-        id: docSnap.id,
-        ...docSnap.data()
-      });
-    });
-
-    renderAdminMatches();
-  } catch (error) {
-    console.error("Error loading matches:", error);
-  }
-}
-
-function renderAdminMatches() {
-  adminMatches.innerHTML = "";
-
-  if (matches.length === 0) {
-    adminMatches.innerHTML = "<p>No matches available.</p>";
-    return;
-  }
-
-  matches.forEach(match => {
-    const card = document.createElement("div");
-    card.className = "match-card";
-
-    card.innerHTML = `
-      <h3>${match.league}</h3>
-      <p><strong>Date:</strong> ${match.date}</p>
-      <p><strong>Time:</strong> ${match.time}</p>
-      <div class="score-line">
-        ${match.homeTeam} ${match.homeScore} - ${match.awayScore} ${match.awayTeam}
-      </div>
-      <span class="status ${match.status}">${match.status}</span>
-
-      <div class="card-actions">
-        <button class="edit-btn" onclick="editMatch('${match.id}')">Edit</button>
-        <button class="delete-btn" onclick="deleteMatch('${match.id}')">Delete</button>
-      </div>
+// Real-time rendering of matches
+onSnapshot(matchesCollection, snapshot => {
+  adminMatchesDiv.innerHTML = "";
+  snapshot.forEach(docSnap => {
+    const match = docSnap.data();
+    const id = docSnap.id;
+    const matchDiv = document.createElement("div");
+    matchDiv.classList.add("match-card");
+    matchDiv.innerHTML = `
+      <p><strong>${match.league}</strong> - ${match.date} ${match.time}</p>
+      <p>${match.homeTeam} ${match.homeScore} : ${match.awayScore} ${match.awayTeam}</p>
+      <p>Status: ${match.status}</p>
+      <button class="edit-btn" data-id="${id}">Edit</button>
+      <button class="delete-btn" data-id="${id}">Delete</button>
     `;
-
-    adminMatches.appendChild(card);
+    adminMatchesDiv.appendChild(matchDiv);
   });
-}
 
-form.addEventListener("submit", async function (e) {
-  e.preventDefault();
+  // Add edit/delete listeners
+  document.querySelectorAll(".edit-btn").forEach(btn => {
+    btn.addEventListener("click", async e => {
+      const id = e.target.dataset.id;
+      const docSnap = await getDoc(doc(db, "matches", id));
+      const match = docSnap.data();
+      matchIdInput.value = id;
+      leagueInput.value = match.league;
+      dateInput.value = match.date;
+      timeInput.value = match.time;
+      homeTeamInput.value = match.homeTeam;
+      awayTeamInput.value = match.awayTeam;
+      homeScoreInput.value = match.homeScore;
+      awayScoreInput.value = match.awayScore;
+      statusInput.value = match.status;
+    });
+  });
 
-  const matchId = document.getElementById("matchId").value;
-
-  const matchData = {
-    league: document.getElementById("league").value,
-    date: document.getElementById("date").value,
-    time: document.getElementById("time").value,
-    homeTeam: document.getElementById("homeTeam").value,
-    awayTeam: document.getElementById("awayTeam").value,
-    homeScore: Number(document.getElementById("homeScore").value),
-    awayScore: Number(document.getElementById("awayScore").value),
-    status: document.getElementById("status").value
-  };
-
-  try {
-    if (matchId) {
-      await updateDoc(doc(db, "matches", matchId), matchData);
-    } else {
-      await addDoc(collection(db, "matches"), matchData);
-    }
-
-    form.reset();
-    document.getElementById("matchId").value = "";
-    loadMatches();
-  } catch (error) {
-    console.error("Error saving match:", error);
-  }
+  document.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.addEventListener("click", async e => {
+      const id = e.target.dataset.id;
+      if (confirm("Delete this match?")) {
+        await deleteDoc(doc(db, "matches", id));
+      }
+    });
+  });
 });
 
-window.editMatch = function (id) {
-  const match = matches.find(m => m.id === id);
-  if (!match) return;
+// Add / update match
+matchForm.addEventListener("submit", async e => {
+  e.preventDefault();
+  const matchData = {
+    league: leagueInput.value,
+    date: dateInput.value,
+    time: timeInput.value,
+    homeTeam: homeTeamInput.value,
+    awayTeam: awayTeamInput.value,
+    homeScore: parseInt(homeScoreInput.value),
+    awayScore: parseInt(awayScoreInput.value),
+    status: statusInput.value
+  };
 
-  document.getElementById("matchId").value = match.id;
-  document.getElementById("league").value = match.league;
-  document.getElementById("date").value = match.date;
-  document.getElementById("time").value = match.time;
-  document.getElementById("homeTeam").value = match.homeTeam;
-  document.getElementById("awayTeam").value = match.awayTeam;
-  document.getElementById("homeScore").value = match.homeScore;
-  document.getElementById("awayScore").value = match.awayScore;
-  document.getElementById("status").value = match.status;
-};
-
-window.deleteMatch = async function (id) {
-  if (!confirm("Delete this match?")) return;
-
-  try {
-    await deleteDoc(doc(db, "matches", id));
-    loadMatches();
-  } catch (error) {
-    console.error("Error deleting match:", error);
+  const id = matchIdInput.value;
+  if (id) {
+    await updateDoc(doc(db, "matches", id), matchData);
+  } else {
+    await addDoc(matchesCollection, matchData);
   }
-};
 
-loadMatches();
+  matchForm.reset();
+  matchIdInput.value = "";
+});
+
+// Export JSON
+exportBtn.addEventListener("click", async () => {
+  const snapshot = await getDocs(matchesCollection);
+  const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "football_matches.json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
