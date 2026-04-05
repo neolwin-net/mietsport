@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - Football Scores</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <script>
@@ -28,22 +28,19 @@
     <section class="admin-form-section">
       <h2>Add / Update Match</h2>
       <form id="matchForm" class="admin-form">
-        <input type="hidden" id="matchId" />
-
-        <input type="text" id="league" placeholder="League" required />
-        <input type="date" id="date" required />
-        <input type="time" id="time" required />
-        <input type="text" id="homeTeam" placeholder="Home Team" required />
-        <input type="text" id="awayTeam" placeholder="Away Team" required />
-        <input type="number" id="homeScore" placeholder="Home Score" required />
-        <input type="number" id="awayScore" placeholder="Away Score" required />
-
+        <input type="hidden" id="matchId">
+        <input type="text" id="league" placeholder="League" required>
+        <input type="date" id="date" required>
+        <input type="time" id="time" required>
+        <input type="text" id="homeTeam" placeholder="Home Team" required>
+        <input type="text" id="awayTeam" placeholder="Away Team" required>
+        <input type="number" id="homeScore" placeholder="Home Score" required>
+        <input type="number" id="awayScore" placeholder="Away Score" required>
         <select id="status" required>
           <option value="Upcoming">Upcoming</option>
           <option value="Live">Live</option>
           <option value="FT">FT</option>
         </select>
-
         <button type="submit">Save Match</button>
       </form>
     </section>
@@ -58,7 +55,6 @@
     </section>
   </main>
 
-  <!-- Firebase SDK -->
   <script type="module" src="firebase-config.js"></script>
   <script type="module" src="admin.js"></script>
 </body>
