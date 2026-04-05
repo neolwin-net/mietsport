@@ -1,0 +1,68 @@
+let matches = [];
+
+async function loadScores() {
+  try {
+    const response = await fetch("scores.json");
+    matches = await response.json();
+    displayMatches(matches);
+  } catch (error) {
+    console.error("Error loading scores:", error);
+  }
+}
+
+function displayMatches(data) {
+  const container = document.getElementById("scoresContainer");
+  container.innerHTML = "";
+
+  if (data.length === 0) {
+    container.innerHTML = "<p>No matches found.</p>";
+    return;
+  }
+
+  data.forEach(match => {
+    const card = document.createElement("div");
+    card.className = "match-card";
+
+    card.innerHTML = `
+      <h3>${match.league}</h3>
+      <p><strong>Date:</strong> ${match.date}</p>
+      <p><strong>Time:</strong> ${match.time}</p>
+      <div class="score-line">
+        ${match.homeTeam} ${match.homeScore} - ${match.awayScore} ${match.awayTeam}
+      </div>
+      <span class="status ${match.status}">${match.status}</span>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+function setupFilters() {
+  const searchInput = document.getElementById("searchInput");
+  const statusFilter = document.getElementById("statusFilter");
+
+  function applyFilters() {
+    const searchValue = searchInput.value.toLowerCase();
+    const statusValue = statusFilter.value;
+
+    const filtered = matches.filter(match => {
+      const matchesSearch =
+        match.homeTeam.toLowerCase().includes(searchValue) ||
+        match.awayTeam.toLowerCase().includes(searchValue) ||
+        match.league.toLowerCase().includes(searchValue);
+
+      const matchesStatus =
+        statusValue === "All" || match.status === statusValue;
+
+      return matchesSearch && matchesStatus;
+    });
+
+    displayMatches(filtered);
+  }
+
+  searchInput.addEventListener("input", applyFilters);
+  statusFilter.addEventListener("change", applyFilters);
+}
+
+loadScores();
+setupFilters();
