@@ -1,21 +1,35 @@
 import { db } from './firebase-config.js';
 import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-const matchesContainer = document.getElementById("matchesContainer");
+const upcomingContainer = document.getElementById("upcomingMatches");
+const previousContainer = document.getElementById("previousMatches");
+
 const matchesCollection = collection(db, "matches");
 
-// Real-time display
 onSnapshot(matchesCollection, snapshot => {
-  matchesContainer.innerHTML = "";
-  snapshot.forEach(docSnap => {
+  upcomingContainer.innerHTML = "";
+  previousContainer.innerHTML = "";
+
+  snapshot.docs.forEach(docSnap => {
     const match = docSnap.data();
     const div = document.createElement("div");
     div.classList.add("match-card");
-    div.innerHTML = `
-      <p><strong>${match.league}</strong> - ${match.date} ${match.time}</p>
-      <p>${match.homeTeam} ${match.homeScore} : ${match.awayScore} ${match.awayTeam}</p>
-      <p>Status: ${match.status}</p>
-    `;
-    matchesContainer.appendChild(div);
+
+    // Upcoming matches: blank scores
+    if (match.status === "Upcoming") {
+      div.innerHTML = `
+        <p><strong>${match.league}</strong> - ${match.date} ${match.time}</p>
+        <p>${match.homeTeam} : ${match.awayTeam}</p>
+        <p>Status: ${match.status}</p>
+      `;
+      upcomingContainer.appendChild(div);
+    } else { // Previous matches: show scores
+      div.innerHTML = `
+        <p><strong>${match.league}</strong> - ${match.date} ${match.time}</p>
+        <p>${match.homeTeam} ${match.homeScore ?? 0} : ${match.awayScore ?? 0} ${match.awayTeam}</p>
+        <p>Status: ${match.status}</p>
+      `;
+      previousContainer.appendChild(div);
+    }
   });
 });
