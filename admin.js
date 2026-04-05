@@ -1,12 +1,7 @@
 import { db } from './firebase-config.js';
 import {
-  collection,
-  addDoc,
-  updateDoc,
-  doc,
-  deleteDoc,
-  onSnapshot,
-  getDoc
+  collection, addDoc, updateDoc, doc, deleteDoc,
+  onSnapshot, getDoc, getDocs
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 const matchForm = document.getElementById("matchForm");
@@ -24,25 +19,24 @@ const exportBtn = document.getElementById("exportBtn");
 
 const matchesCollection = collection(db, "matches");
 
-// Real-time rendering of matches
+// Real-time render
 onSnapshot(matchesCollection, snapshot => {
   adminMatchesDiv.innerHTML = "";
   snapshot.forEach(docSnap => {
     const match = docSnap.data();
     const id = docSnap.id;
-    const matchDiv = document.createElement("div");
-    matchDiv.classList.add("match-card");
-    matchDiv.innerHTML = `
+    const div = document.createElement("div");
+    div.classList.add("match-card");
+    div.innerHTML = `
       <p><strong>${match.league}</strong> - ${match.date} ${match.time}</p>
       <p>${match.homeTeam} ${match.homeScore} : ${match.awayScore} ${match.awayTeam}</p>
       <p>Status: ${match.status}</p>
       <button class="edit-btn" data-id="${id}">Edit</button>
       <button class="delete-btn" data-id="${id}">Delete</button>
     `;
-    adminMatchesDiv.appendChild(matchDiv);
+    adminMatchesDiv.appendChild(div);
   });
 
-  // Add edit/delete listeners
   document.querySelectorAll(".edit-btn").forEach(btn => {
     btn.addEventListener("click", async e => {
       const id = e.target.dataset.id;
@@ -83,14 +77,12 @@ matchForm.addEventListener("submit", async e => {
     awayScore: parseInt(awayScoreInput.value),
     status: statusInput.value
   };
-
   const id = matchIdInput.value;
   if (id) {
     await updateDoc(doc(db, "matches", id), matchData);
   } else {
     await addDoc(matchesCollection, matchData);
   }
-
   matchForm.reset();
   matchIdInput.value = "";
 });
