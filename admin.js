@@ -9,6 +9,9 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// ============================
+// DOM ELEMENTS
+// ============================
 const matchForm = document.getElementById("matchForm");
 const matchIdInput = document.getElementById("matchId");
 const leagueInput = document.getElementById("league");
@@ -26,9 +29,13 @@ const exportBtn = document.getElementById("exportBtn");
 
 const matchesRef = collection(db, "matches");
 
-// SAVE / UPDATE
+// ============================
+// SAVE / UPDATE MATCH
+// ============================
 matchForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+
+  const status = statusInput.value;
 
   const matchData = {
     league: leagueInput.value.trim(),
@@ -36,9 +43,9 @@ matchForm.addEventListener("submit", async (e) => {
     time: timeInput.value,
     homeTeam: homeTeamInput.value.trim(),
     awayTeam: awayTeamInput.value.trim(),
-    homeScore: homeScoreInput.value === "" ? "" : Number(homeScoreInput.value),
-    awayScore: awayScoreInput.value === "" ? "" : Number(awayScoreInput.value),
-    status: statusInput.value,
+    homeScore: status === "Upcoming" ? "" : (homeScoreInput.value === "" ? "" : Number(homeScoreInput.value)),
+    awayScore: status === "Upcoming" ? "" : (awayScoreInput.value === "" ? "" : Number(awayScoreInput.value)),
+    status: status,
     order: Number(orderInput.value)
   };
 
@@ -59,12 +66,27 @@ matchForm.addEventListener("submit", async (e) => {
   }
 });
 
+// ============================
 // CANCEL EDIT
+// ============================
 cancelEditBtn.addEventListener("click", () => {
   resetForm();
 });
 
-// REAL-TIME LIST (NO FIREBASE INDEX REQUIRED)
+// ============================
+// AUTO CLEAR SCORE IF UPCOMING
+// ============================
+statusInput.addEventListener("change", () => {
+  if (statusInput.value === "Upcoming") {
+    homeScoreInput.value = "";
+    awayScoreInput.value = "";
+  }
+});
+
+// ============================
+// REAL-TIME MATCH LIST
+// NO FIRESTORE INDEX REQUIRED
+// ============================
 onSnapshot(matchesRef, (snapshot) => {
   const matches = [];
 
@@ -72,7 +94,7 @@ onSnapshot(matchesRef, (snapshot) => {
     matches.push({ id: docSnap.id, ...docSnap.data() });
   });
 
-  // sort in JS instead of Firestore
+  // Sort in JavaScript
   matches.sort((a, b) => {
     const leagueCompare = (a.league || "").localeCompare(b.league || "");
     if (leagueCompare !== 0) return leagueCompare;
@@ -84,7 +106,9 @@ onSnapshot(matchesRef, (snapshot) => {
   console.error("Firestore read error:", error);
 });
 
-// RENDER
+// ============================
+// RENDER MATCHES
+// ============================
 function renderAdminMatches(matches) {
   adminMatches.innerHTML = "";
 
@@ -142,6 +166,9 @@ function renderAdminMatches(matches) {
   attachButtons(matches);
 }
 
+// ============================
+// EDIT + DELETE BUTTONS
+// ============================
 function attachButtons(matches) {
   document.querySelectorAll(".edit-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -168,6 +195,9 @@ function attachButtons(matches) {
   });
 }
 
+// ============================
+// LOAD MATCH INTO FORM
+// ============================
 function loadMatchForEdit(match) {
   matchIdInput.value = match.id;
   leagueInput.value = match.league || "";
@@ -183,23 +213,39 @@ function loadMatchForEdit(match) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+// ============================
+// RESET FORM
+// ============================
 function resetForm() {
   matchForm.reset();
   matchIdInput.value = "";
   statusInput.value = "Upcoming";
+  homeScoreInput.value = "";
+  awayScoreInput.value = "";
 }
 
+// ============================
+// GROUP BY LEAGUE
+// ============================
 function groupByLeague(matches) {
   return matches.reduce((groups, match) => {
     const league = match.league || "Other League";
-    if (!groups[league]) groups[league] = [];
+
+    if (!groups[league]) {
+      groups[league] = [];
+    }
+
     groups[league].push(match);
-    groups[league].sort((a, b) => Number(a.order) - Number(b.order));
+
+    groups[league].sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+
     return groups;
   }, {});
 }
 
+// ============================
 // EXPORT JSON
+// ============================
 exportBtn.addEventListener("click", async () => {
   try {
     const snapshot = await getDocs(matchesRef);
