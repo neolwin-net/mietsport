@@ -9,6 +9,7 @@ const previousContainer = document.getElementById("previousMatches");
 
 const matchesRef = collection(db, "matches");
 
+// Real-time listener (NO Firestore index required)
 onSnapshot(matchesRef, (snapshot) => {
   const matches = [];
 
@@ -16,7 +17,7 @@ onSnapshot(matchesRef, (snapshot) => {
     matches.push({ id: docSnap.id, ...docSnap.data() });
   });
 
-  // sort in JS
+  // Sort in JavaScript instead of Firestore
   matches.sort((a, b) => {
     const leagueCompare = (a.league || "").localeCompare(b.league || "");
     if (leagueCompare !== 0) return leagueCompare;
