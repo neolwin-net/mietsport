@@ -7,7 +7,7 @@ const firebaseConfig = {
   projectId: "mietsport-219e0",
   storageBucket: "mietsport-219e0.firebasestorage.app",
   messagingSenderId: "887875051700",
-  appId: "1:887875051700:web:1234567890abcdef123456"
+  appId: "1:887875051700:web:937aa6380b44a6dc8a37e1"
 };
 
 const app = initializeApp(firebaseConfig);
