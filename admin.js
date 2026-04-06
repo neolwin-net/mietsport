@@ -11,7 +11,6 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// DOM Elements
 const matchForm = document.getElementById("matchForm");
 const matchIdInput = document.getElementById("matchId");
 const leagueInput = document.getElementById("league");
@@ -30,7 +29,7 @@ const exportBtn = document.getElementById("exportBtn");
 const matchesRef = collection(db, "matches");
 
 // ============================
-// ADD / UPDATE MATCH
+// SAVE / UPDATE MATCH
 // ============================
 matchForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -47,6 +46,8 @@ matchForm.addEventListener("submit", async (e) => {
     order: Number(orderInput.value)
   };
 
+  console.log("Saving match:", matchData);
+
   try {
     if (matchIdInput.value) {
       const matchDoc = doc(db, "matches", matchIdInput.value);
@@ -59,8 +60,8 @@ matchForm.addEventListener("submit", async (e) => {
 
     resetForm();
   } catch (error) {
-    console.error("Error saving match:", error);
-    alert("Error saving match. Check console.");
+    console.error("🔥 Error saving match:", error);
+    alert("Error saving match! Open F12 > Console.");
   }
 });
 
@@ -72,7 +73,7 @@ cancelEditBtn.addEventListener("click", () => {
 });
 
 // ============================
-// REAL-TIME MATCH LIST
+// LIVE MATCH LIST
 // ============================
 const q = query(matchesRef, orderBy("league"), orderBy("order"));
 
@@ -84,6 +85,8 @@ onSnapshot(q, (snapshot) => {
   });
 
   renderAdminMatches(matches);
+}, (error) => {
+  console.error("🔥 Firestore read error:", error);
 });
 
 // ============================
@@ -108,11 +111,6 @@ function renderAdminMatches(matches) {
     grouped[league].forEach((match) => {
       const card = document.createElement("div");
       card.className = "score-card";
-
-      let scoreDisplay = "- : -";
-      if (match.status === "Live" || match.status === "FT") {
-        scoreDisplay = `${match.homeScore === "" ? 0 : match.homeScore} - ${match.awayScore === "" ? 0 : match.awayScore}`;
-      }
 
       card.innerHTML = `
         <div class="score-header">
@@ -152,7 +150,7 @@ function renderAdminMatches(matches) {
 }
 
 // ============================
-// EDIT + DELETE BUTTONS
+// BUTTONS
 // ============================
 function attachButtons(matches) {
   document.querySelectorAll(".edit-btn").forEach((btn) => {
@@ -173,15 +171,15 @@ function attachButtons(matches) {
         await deleteDoc(doc(db, "matches", id));
         alert("Match deleted successfully!");
       } catch (error) {
-        console.error("Error deleting match:", error);
-        alert("Error deleting match.");
+        console.error("🔥 Error deleting match:", error);
+        alert("Error deleting match! Open F12 > Console.");
       }
     });
   });
 }
 
 // ============================
-// LOAD MATCH FOR EDIT
+// EDIT
 // ============================
 function loadMatchForEdit(match) {
   matchIdInput.value = match.id;
@@ -199,7 +197,7 @@ function loadMatchForEdit(match) {
 }
 
 // ============================
-// RESET FORM
+// RESET
 // ============================
 function resetForm() {
   matchForm.reset();
@@ -208,18 +206,14 @@ function resetForm() {
 }
 
 // ============================
-// GROUP BY LEAGUE
+// GROUP
 // ============================
 function groupByLeague(matches) {
   return matches.reduce((groups, match) => {
     const league = match.league || "Other League";
-    if (!groups[league]) {
-      groups[league] = [];
-    }
+    if (!groups[league]) groups[league] = [];
     groups[league].push(match);
-
     groups[league].sort((a, b) => Number(a.order) - Number(b.order));
-
     return groups;
   }, {});
 }
@@ -248,7 +242,7 @@ exportBtn.addEventListener("click", async () => {
 
     URL.revokeObjectURL(url);
   } catch (error) {
-    console.error("Export error:", error);
+    console.error("🔥 Export error:", error);
     alert("Failed to export JSON.");
   }
 });
