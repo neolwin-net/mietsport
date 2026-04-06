@@ -85,7 +85,6 @@ statusInput.addEventListener("change", () => {
 
 // ============================
 // REAL-TIME MATCH LIST
-// NO FIRESTORE INDEX REQUIRED
 // ============================
 onSnapshot(matchesRef, (snapshot) => {
   const matches = [];
