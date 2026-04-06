@@ -1,50 +1,36 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { db } from "./firebase-config.js";
 import {
-  getFirestore,
   collection,
-  onSnapshot,
-  query,
-  orderBy
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// =====================
-// YOUR FIREBASE CONFIG
-// =====================
-
-const firebaseConfig = {
-  apiKey: "AIzaSyA7GIr9HxNnYCxlNxVU0k2_iDqongpf5JI",
-  authDomain: "mietsport-219e0.firebaseapp.com",
-  projectId: "mietsport-219e0",
-  storageBucket: "mietsport-219e0.firebasestorage.app",
-  messagingSenderId: "887875051700",
-  appId: "1:887875051700:web:937aa6380b44a6dc8a37e1"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// DOM
 const upcomingContainer = document.getElementById("upcomingMatches");
 const previousContainer = document.getElementById("previousMatches");
 
-// Listen to matches in real-time
 const matchesRef = collection(db, "matches");
-const q = query(matchesRef, orderBy("league"), orderBy("order"));
 
-onSnapshot(q, (snapshot) => {
+onSnapshot(matchesRef, (snapshot) => {
   const matches = [];
 
-  snapshot.forEach((doc) => {
-    matches.push({ id: doc.id, ...doc.data() });
+  snapshot.forEach((docSnap) => {
+    matches.push({ id: docSnap.id, ...docSnap.data() });
+  });
+
+  // sort in JS
+  matches.sort((a, b) => {
+    const leagueCompare = (a.league || "").localeCompare(b.league || "");
+    if (leagueCompare !== 0) return leagueCompare;
+    return Number(a.order || 0) - Number(b.order || 0);
   });
 
   renderMatches(matches);
+}, (error) => {
+  console.error("Firestore read error:", error);
 });
 
 function renderMatches(matches) {
-  const upcoming = matches.filter(match => match.status === "upcoming");
-  const previous = matches.filter(match => match.status === "previous");
+  const upcoming = matches.filter(match => match.status === "Upcoming");
+  const previous = matches.filter(match => match.status === "FT" || match.status === "Live");
 
   renderCategory(upcomingContainer, upcoming, true);
   renderCategory(previousContainer, previous, false);
@@ -68,19 +54,28 @@ function renderCategory(container, matches, isUpcoming) {
 
     grouped[league].forEach(match => {
       const card = document.createElement("div");
-      card.className = "match-card";
-
-      const scoreDisplay = isUpcoming
-        ? "- : -"
-        : `${match.homeScore ?? 0} - ${match.awayScore ?? 0}`;
+      card.className = "score-card";
 
       card.innerHTML = `
-        <div class="match-row">
-          <div class="teams">${match.homeTeam} vs ${match.awayTeam}</div>
-          <div class="score">${scoreDisplay}</div>
+        <div class="score-header">
+          <span class="match-date">${match.date}</span>
+          <span class="match-status">${match.status}</span>
         </div>
-        <div class="match-info">
-          📅 ${match.date} | ⏰ ${match.time} | 🔢 Order: ${match.order}
+
+        <div class="teams">
+          <div class="team-row">
+            <span>${match.homeTeam}</span>
+            <strong>${isUpcoming ? "" : (match.homeScore === "" ? "-" : match.homeScore)}</strong>
+          </div>
+          <div class="team-row">
+            <span>${match.awayTeam}</span>
+            <strong>${isUpcoming ? "" : (match.awayScore === "" ? "-" : match.awayScore)}</strong>
+          </div>
+        </div>
+
+        <div class="match-meta">
+          <small>🕒 ${match.time}</small><br>
+          <small>🔢 Order: ${match.order}</small>
         </div>
       `;
 
@@ -92,14 +87,9 @@ function renderCategory(container, matches, isUpcoming) {
 function groupByLeague(matches) {
   return matches.reduce((groups, match) => {
     const league = match.league || "Other League";
-    if (!groups[league]) {
-      groups[league] = [];
-    }
+    if (!groups[league]) groups[league] = [];
     groups[league].push(match);
-
-    // Sort by admin order inside each league
     groups[league].sort((a, b) => Number(a.order) - Number(b.order));
-
     return groups;
   }, {});
 }
