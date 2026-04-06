@@ -31,7 +31,7 @@ onSnapshot(matchesRef, (snapshot) => {
 
 function renderMatches(matches) {
   const upcoming = matches.filter(match => match.status === "Upcoming");
-  const previous = matches.filter(match => match.status === "FT" || match.status === "Live");
+  const previous = matches.filter(match => match.status === "FT" || match.status === "Played");
 
   renderCategory(upcomingContainer, upcoming, true);
   renderCategory(previousContainer, previous, false);
@@ -59,8 +59,8 @@ function renderCategory(container, matches, isUpcoming) {
 
       card.innerHTML = `
         <div class="score-header">
-          <span class="match-date">${match.date}</span>
-          <span class="match-status">${match.status}</span>
+          <span class="match-date">${match.date}</span> 
+          <span class="match-status">${match.status === "Upcoming" ? "Upcoming" : "Played"}</span>
         </div>
 
         <div class="teams">
