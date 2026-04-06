@@ -10,13 +10,14 @@ import {
 // =====================
 // YOUR FIREBASE CONFIG
 // =====================
+
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.firebasestorage.app",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyA7GIr9HxNnYCxlNxVU0k2_iDqongpf5JI",
+  authDomain: "mietsport-219e0.firebaseapp.com",
+  projectId: "mietsport-219e0",
+  storageBucket: "mietsport-219e0.firebasestorage.app",
+  messagingSenderId: "887875051700",
+  appId: "1:887875051700:web:937aa6380b44a6dc8a37e1"
 };
 
 // Initialize Firebase
