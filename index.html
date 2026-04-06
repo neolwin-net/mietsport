@@ -1,33 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Football Scores</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<header class="site-header">
-  <h1>⚽ Football Scores</h1>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="admin.html">Admin</a>
-  </nav>
-</header>
+  <header class="hero">
+    <h1>⚽ Football Scores</h1>
+    <p>Live Match Schedule & Results</p>
+  </header>
 
-<main class="container">
-  <section>
-    <h2>Upcoming Matches</h2>
-    <div id="upcomingMatches" class="scores-grid"></div>
-  </section>
+  <main class="container">
+    <!-- Upcoming Matches -->
+    <section class="section-box">
+      <h2 class="section-title">Upcoming Matches</h2>
+      <div id="upcomingMatches"></div>
+    </section>
 
-  <section>
-    <h2>Previous Matches</h2>
-    <div id="previousMatches" class="scores-grid"></div>
-  </section>
-</main>
+    <!-- Previous Matches -->
+    <section class="section-box">
+      <h2 class="section-title">Previous Matches</h2>
+      <div id="previousMatches"></div>
+    </section>
+  </main>
 
-<script type="module" src="firebase-config.js"></script>
-<script type="module" src="home.js"></script>
+  <footer class="footer">
+    <p>© 2026 Football Scores</p>
+  </footer>
+
+  <script type="module" src="script.js"></script>
 </body>
 </html>
