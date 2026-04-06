@@ -1,12 +1,15 @@
 import { db } from "./firebase-config.js";
-import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  collection,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const upcomingContainer = document.getElementById("upcomingMatches");
 const previousContainer = document.getElementById("previousMatches");
 
 const matchesRef = collection(db, "matches");
 
-// Real-time listener (no Firestore index required)
+// Real-time listener (NO Firestore index required)
 onSnapshot(matchesRef, (snapshot) => {
   const matches = [];
 
@@ -14,7 +17,7 @@ onSnapshot(matchesRef, (snapshot) => {
     matches.push({ id: docSnap.id, ...docSnap.data() });
   });
 
-  // Sort by league and order
+  // Sort in JavaScript instead of Firestore
   matches.sort((a, b) => {
     const leagueCompare = (a.league || "").localeCompare(b.league || "");
     if (leagueCompare !== 0) return leagueCompare;
@@ -28,7 +31,7 @@ onSnapshot(matchesRef, (snapshot) => {
 
 function renderMatches(matches) {
   const upcoming = matches.filter(match => match.status === "Upcoming");
-  const previous = matches.filter(match => match.status !== "Upcoming"); // key fix: include old "Live"
+  const previous = matches.filter(match => match.status === "FT" || match.status === "Played");
 
   renderCategory(upcomingContainer, upcoming, true);
   renderCategory(previousContainer, previous, false);
@@ -56,8 +59,8 @@ function renderCategory(container, matches, isUpcoming) {
 
       card.innerHTML = `
         <div class="score-header">
-          <span class="match-date">${match.date}</span>
-          <span class="match-status">${isUpcoming ? "Upcoming" : "Played"}</span>
+          <span class="match-date">${match.date}</span> 
+          <span class="match-status">${match.status}</span>
         </div>
 
         <div class="teams">
