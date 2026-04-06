@@ -15,19 +15,20 @@ onSnapshot(matchesCollection, snapshot => {
     const div = document.createElement("div");
     div.classList.add("match-card");
 
-    // Upcoming matches: blank scores
     if (match.status === "Upcoming") {
+      // Upcoming matches: blank scores
       div.innerHTML = `
         <p><strong>${match.league}</strong> - ${match.date} ${match.time}</p>
         <p>${match.homeTeam} : ${match.awayTeam}</p>
-        <p>Status: ${match.status}</p>
+        <p>Status: Upcoming</p>
       `;
       upcomingContainer.appendChild(div);
-    } else { // Previous matches: show scores
+    } else {
+      // Previous matches: show scores
       div.innerHTML = `
         <p><strong>${match.league}</strong> - ${match.date} ${match.time}</p>
         <p>${match.homeTeam} ${match.homeScore ?? 0} : ${match.awayScore ?? 0} ${match.awayTeam}</p>
-        <p>Status: ${match.status}</p>
+        <p>Status: Played</p>
       `;
       previousContainer.appendChild(div);
     }
