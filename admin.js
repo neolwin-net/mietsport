@@ -6,8 +6,6 @@ import {
   deleteDoc,
   doc,
   onSnapshot,
-  query,
-  orderBy,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -28,9 +26,7 @@ const exportBtn = document.getElementById("exportBtn");
 
 const matchesRef = collection(db, "matches");
 
-// ============================
-// SAVE / UPDATE MATCH
-// ============================
+// SAVE / UPDATE
 matchForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -46,8 +42,6 @@ matchForm.addEventListener("submit", async (e) => {
     order: Number(orderInput.value)
   };
 
-  console.log("Saving match:", matchData);
-
   try {
     if (matchIdInput.value) {
       const matchDoc = doc(db, "matches", matchIdInput.value);
@@ -60,38 +54,37 @@ matchForm.addEventListener("submit", async (e) => {
 
     resetForm();
   } catch (error) {
-    console.error("🔥 Error saving match:", error);
+    console.error("Error saving match:", error);
     alert("Error saving match! Open F12 > Console.");
   }
 });
 
-// ============================
 // CANCEL EDIT
-// ============================
 cancelEditBtn.addEventListener("click", () => {
   resetForm();
 });
 
-// ============================
-// LIVE MATCH LIST
-// ============================
-const q = query(matchesRef, orderBy("league"), orderBy("order"));
-
-onSnapshot(q, (snapshot) => {
+// REAL-TIME LIST (NO FIREBASE INDEX REQUIRED)
+onSnapshot(matchesRef, (snapshot) => {
   const matches = [];
 
   snapshot.forEach((docSnap) => {
     matches.push({ id: docSnap.id, ...docSnap.data() });
   });
 
+  // sort in JS instead of Firestore
+  matches.sort((a, b) => {
+    const leagueCompare = (a.league || "").localeCompare(b.league || "");
+    if (leagueCompare !== 0) return leagueCompare;
+    return Number(a.order || 0) - Number(b.order || 0);
+  });
+
   renderAdminMatches(matches);
 }, (error) => {
-  console.error("🔥 Firestore read error:", error);
+  console.error("Firestore read error:", error);
 });
 
-// ============================
-// RENDER MATCHES
-// ============================
+// RENDER
 function renderAdminMatches(matches) {
   adminMatches.innerHTML = "";
 
@@ -149,9 +142,6 @@ function renderAdminMatches(matches) {
   attachButtons(matches);
 }
 
-// ============================
-// BUTTONS
-// ============================
 function attachButtons(matches) {
   document.querySelectorAll(".edit-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -171,16 +161,13 @@ function attachButtons(matches) {
         await deleteDoc(doc(db, "matches", id));
         alert("Match deleted successfully!");
       } catch (error) {
-        console.error("🔥 Error deleting match:", error);
-        alert("Error deleting match! Open F12 > Console.");
+        console.error("Error deleting match:", error);
+        alert("Error deleting match!");
       }
     });
   });
 }
 
-// ============================
-// EDIT
-// ============================
 function loadMatchForEdit(match) {
   matchIdInput.value = match.id;
   leagueInput.value = match.league || "";
@@ -196,18 +183,12 @@ function loadMatchForEdit(match) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// ============================
-// RESET
-// ============================
 function resetForm() {
   matchForm.reset();
   matchIdInput.value = "";
   statusInput.value = "Upcoming";
 }
 
-// ============================
-// GROUP
-// ============================
 function groupByLeague(matches) {
   return matches.reduce((groups, match) => {
     const league = match.league || "Other League";
@@ -218,9 +199,7 @@ function groupByLeague(matches) {
   }, {});
 }
 
-// ============================
 // EXPORT JSON
-// ============================
 exportBtn.addEventListener("click", async () => {
   try {
     const snapshot = await getDocs(matchesRef);
@@ -242,7 +221,7 @@ exportBtn.addEventListener("click", async () => {
 
     URL.revokeObjectURL(url);
   } catch (error) {
-    console.error("🔥 Export error:", error);
+    console.error("Export error:", error);
     alert("Failed to export JSON.");
   }
 });
