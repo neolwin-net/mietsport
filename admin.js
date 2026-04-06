@@ -1,6 +1,5 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { db } from "./firebase-config.js";
 import {
-  getFirestore,
   collection,
   addDoc,
   updateDoc,
@@ -8,52 +7,40 @@ import {
   doc,
   onSnapshot,
   query,
-  orderBy
+  orderBy,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// =====================
-// YOUR FIREBASE CONFIG
-// =====================
-
-
-const firebaseConfig = {
-  apiKey: "AIzaSyA7GIr9HxNnYCxlNxVU0k2_iDqongpf5JI",
-  authDomain: "mietsport-219e0.firebaseapp.com",
-  projectId: "mietsport-219e0",
-  storageBucket: "mietsport-219e0.firebasestorage.app",
-  messagingSenderId: "887875051700",
-  appId: "1:887875051700:web:937aa6380b44a6dc8a37e1"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// DOM
+// DOM Elements
 const matchForm = document.getElementById("matchForm");
 const matchIdInput = document.getElementById("matchId");
 const leagueInput = document.getElementById("league");
+const dateInput = document.getElementById("date");
+const timeInput = document.getElementById("time");
 const homeTeamInput = document.getElementById("homeTeam");
 const awayTeamInput = document.getElementById("awayTeam");
-const dateInput = document.getElementById("matchDate");
-const timeInput = document.getElementById("matchTime");
 const homeScoreInput = document.getElementById("homeScore");
 const awayScoreInput = document.getElementById("awayScore");
 const statusInput = document.getElementById("status");
 const orderInput = document.getElementById("order");
 const adminMatches = document.getElementById("adminMatches");
 const cancelEditBtn = document.getElementById("cancelEdit");
+const exportBtn = document.getElementById("exportBtn");
 
-// Add / Update Match
+const matchesRef = collection(db, "matches");
+
+// ============================
+// ADD / UPDATE MATCH
+// ============================
 matchForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const matchData = {
     league: leagueInput.value.trim(),
-    homeTeam: homeTeamInput.value.trim(),
-    awayTeam: awayTeamInput.value.trim(),
     date: dateInput.value,
     time: timeInput.value,
+    homeTeam: homeTeamInput.value.trim(),
+    awayTeam: awayTeamInput.value.trim(),
     homeScore: homeScoreInput.value === "" ? "" : Number(homeScoreInput.value),
     awayScore: awayScoreInput.value === "" ? "" : Number(awayScoreInput.value),
     status: statusInput.value,
@@ -62,31 +49,36 @@ matchForm.addEventListener("submit", async (e) => {
 
   try {
     if (matchIdInput.value) {
-      const matchRef = doc(db, "matches", matchIdInput.value);
-      await updateDoc(matchRef, matchData);
+      const matchDoc = doc(db, "matches", matchIdInput.value);
+      await updateDoc(matchDoc, matchData);
       alert("Match updated successfully!");
     } else {
-      await addDoc(collection(db, "matches"), matchData);
+      await addDoc(matchesRef, matchData);
       alert("Match added successfully!");
     }
 
     resetForm();
   } catch (error) {
     console.error("Error saving match:", error);
-    alert("Error saving match!");
+    alert("Error saving match. Check console.");
   }
 });
 
-// Cancel Edit
+// ============================
+// CANCEL EDIT
+// ============================
 cancelEditBtn.addEventListener("click", () => {
   resetForm();
 });
 
-// Real-time match list
-const q = query(collection(db, "matches"), orderBy("league"), orderBy("order"));
+// ============================
+// REAL-TIME MATCH LIST
+// ============================
+const q = query(matchesRef, orderBy("league"), orderBy("order"));
 
 onSnapshot(q, (snapshot) => {
   const matches = [];
+
   snapshot.forEach((docSnap) => {
     matches.push({ id: docSnap.id, ...docSnap.data() });
   });
@@ -94,6 +86,9 @@ onSnapshot(q, (snapshot) => {
   renderAdminMatches(matches);
 });
 
+// ============================
+// RENDER MATCHES
+// ============================
 function renderAdminMatches(matches) {
   adminMatches.innerHTML = "";
 
@@ -105,49 +100,65 @@ function renderAdminMatches(matches) {
   const grouped = groupByLeague(matches);
 
   for (const league in grouped) {
-    const leagueTitle = document.createElement("h3");
-    leagueTitle.className = "league-title";
-    leagueTitle.textContent = league;
-    adminMatches.appendChild(leagueTitle);
+    const leagueBlock = document.createElement("div");
+    leagueBlock.className = "league-block";
+
+    leagueBlock.innerHTML = `<h3 class="league-title">${league}</h3>`;
 
     grouped[league].forEach((match) => {
       const card = document.createElement("div");
-      card.className = "admin-card";
+      card.className = "score-card";
 
-      const scoreText =
-        match.status === "upcoming"
-          ? "- : -"
-          : `${match.homeScore ?? 0} - ${match.awayScore ?? 0}`;
+      let scoreDisplay = "- : -";
+      if (match.status === "Live" || match.status === "FT") {
+        scoreDisplay = `${match.homeScore === "" ? 0 : match.homeScore} - ${match.awayScore === "" ? 0 : match.awayScore}`;
+      }
 
       card.innerHTML = `
-        <div class="match-row">
-          <div class="teams">${match.homeTeam} vs ${match.awayTeam}</div>
-          <div class="score">${scoreText}</div>
+        <div class="score-header">
+          <span class="match-date">${match.date}</span>
+          <span class="match-status">${match.status}</span>
         </div>
-        <div class="match-info">
-          🏆 ${match.league} <br>
-          📅 ${match.date} | ⏰ ${match.time} <br>
-          📌 Status: ${match.status} <br>
-          🔢 Order: ${match.order}
+
+        <div class="teams">
+          <div class="team-row">
+            <span>${match.homeTeam}</span>
+            <strong>${match.status === "Upcoming" ? "" : (match.homeScore === "" ? "-" : match.homeScore)}</strong>
+          </div>
+          <div class="team-row">
+            <span>${match.awayTeam}</span>
+            <strong>${match.status === "Upcoming" ? "" : (match.awayScore === "" ? "-" : match.awayScore)}</strong>
+          </div>
         </div>
-        <div class="admin-actions">
+
+        <div class="match-meta">
+          <small>🕒 ${match.time}</small><br>
+          <small>🔢 Order: ${match.order}</small>
+        </div>
+
+        <div class="card-actions">
           <button class="edit-btn" data-id="${match.id}">Edit</button>
           <button class="delete-btn" data-id="${match.id}">Delete</button>
         </div>
       `;
 
-      adminMatches.appendChild(card);
+      leagueBlock.appendChild(card);
     });
+
+    adminMatches.appendChild(leagueBlock);
   }
 
   attachButtons(matches);
 }
 
+// ============================
+// EDIT + DELETE BUTTONS
+// ============================
 function attachButtons(matches) {
   document.querySelectorAll(".edit-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = btn.dataset.id;
-      const match = matches.find(m => m.id === id);
+      const match = matches.find((m) => m.id === id);
       if (match) loadMatchForEdit(match);
     });
   });
@@ -163,32 +174,42 @@ function attachButtons(matches) {
         alert("Match deleted successfully!");
       } catch (error) {
         console.error("Error deleting match:", error);
-        alert("Error deleting match!");
+        alert("Error deleting match.");
       }
     });
   });
 }
 
+// ============================
+// LOAD MATCH FOR EDIT
+// ============================
 function loadMatchForEdit(match) {
   matchIdInput.value = match.id;
   leagueInput.value = match.league || "";
-  homeTeamInput.value = match.homeTeam || "";
-  awayTeamInput.value = match.awayTeam || "";
   dateInput.value = match.date || "";
   timeInput.value = match.time || "";
+  homeTeamInput.value = match.homeTeam || "";
+  awayTeamInput.value = match.awayTeam || "";
   homeScoreInput.value = match.homeScore ?? "";
   awayScoreInput.value = match.awayScore ?? "";
-  statusInput.value = match.status || "upcoming";
+  statusInput.value = match.status || "Upcoming";
   orderInput.value = match.order ?? "";
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+// ============================
+// RESET FORM
+// ============================
 function resetForm() {
   matchForm.reset();
   matchIdInput.value = "";
+  statusInput.value = "Upcoming";
 }
 
+// ============================
+// GROUP BY LEAGUE
+// ============================
 function groupByLeague(matches) {
   return matches.reduce((groups, match) => {
     const league = match.league || "Other League";
@@ -197,9 +218,37 @@ function groupByLeague(matches) {
     }
     groups[league].push(match);
 
-    // Sort by admin order inside each league
     groups[league].sort((a, b) => Number(a.order) - Number(b.order));
 
     return groups;
   }, {});
 }
+
+// ============================
+// EXPORT JSON
+// ============================
+exportBtn.addEventListener("click", async () => {
+  try {
+    const snapshot = await getDocs(matchesRef);
+    const allMatches = [];
+
+    snapshot.forEach((docSnap) => {
+      allMatches.push({ id: docSnap.id, ...docSnap.data() });
+    });
+
+    const blob = new Blob([JSON.stringify(allMatches, null, 2)], {
+      type: "application/json"
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "football-matches.json";
+    a.click();
+
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Export error:", error);
+    alert("Failed to export JSON.");
+  }
+});
