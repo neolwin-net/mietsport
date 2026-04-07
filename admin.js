@@ -131,7 +131,7 @@ function renderAdminMatches(matches) {
       card.innerHTML = `
         <div class="score-header">
           <span class="match-date">${match.date}</span>
-          <span class="match-status">${match.status === "Upcoming" ? "Upcoming" : "Played"}</span>
+          <span class="match-status">${match.status}</span>
         </div>
 
         <div class="teams">
