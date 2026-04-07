@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin - Football Scores</title>
+  <title>MIET Sport Admin</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
 <script>
 const password = prompt("Enter admin password:");
-if (password !== "admin123") {
+if (password !== "miet24") {
   alert("Access denied!");
   window.location.href = "index.html";
 }
 </script>
 
 <header class="site-header">
-  <h1>⚙️ Admin Panel</h1>
-  <p>Add / edit / delete and export football scores</p>
+  <h1>⚙️Admin Panel⚙️</h1>
+  <p>Add / edit / delete and export sport scores</p>
   <nav>
     <a href="index.html">Home</a>
     <a href="admin.html">Admin</a>
@@ -44,8 +44,8 @@ if (password !== "admin123") {
 
       <select id="status" required>
         <option value="Upcoming">Upcoming</option>
+        <option value="Live">Live</option>
         <option value="Played">Played</option>
-        <option value="FT">FT</option>
       </select>
 
       <input type="number" id="order" placeholder="Display Order (1,2,3...)" required />
@@ -60,7 +60,7 @@ if (password !== "admin123") {
   </section>
 
   <section>
-    <h2>Current Matches</h2>
+    <h2>Matches</h2>
     <div id="adminMatches" class="scores-grid"></div>
   </section>
 </main>
