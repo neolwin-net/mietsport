@@ -31,7 +31,12 @@ onSnapshot(matchesRef, (snapshot) => {
 
 function renderMatches(matches) {
   const upcoming = matches.filter(match => match.status === "Upcoming");
-  const previous = matches.filter(match => match.status === "FT" || match.status === "Played");
+  const previous = matches.filter(
+    match =>
+      match.status === "FT" ||
+      match.status === "Live" ||
+      match.status === "Played"
+  );
 
   renderCategory(upcomingContainer, upcoming, true);
   renderCategory(previousContainer, previous, false);
@@ -76,7 +81,7 @@ function renderCategory(container, matches, isUpcoming) {
 
         <div class="match-meta">
           <small>🕒 ${match.time}</small><br>
-          <small>🔢 Order: ${match.order}</small>
+          <small>🔢 Order: ${match.order ?? "-"}</small>
         </div>
       `;
 
@@ -90,7 +95,7 @@ function groupByLeague(matches) {
     const league = match.league || "Other League";
     if (!groups[league]) groups[league] = [];
     groups[league].push(match);
-    groups[league].sort((a, b) => Number(a.order) - Number(b.order));
+    groups[league].sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
     return groups;
   }, {});
 }
